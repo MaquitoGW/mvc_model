@@ -15,12 +15,12 @@ class sql extends conectPDO
         $this->PDO = parent::__construct();
     }
 
-    public function INSERT()
+    public static function INSERT($tb)
     {
-        // echo $this->PDO;
+        $i = new self();
+        $i->query = "INSERT INTO $tb ";
+        return $i;
     }
-
-
 
     public static function SELECT($tb)
     {
@@ -29,11 +29,27 @@ class sql extends conectPDO
         return $i;
     }
 
-    // Metodos do select
+    // Metodos do Insert
+    public function add($array)
+    {
+        $keys = "";
+        $values = "";
+        $total = count($array);
+        $i = 0;
+        foreach ($array as $key => $value) {
+            $keys .= $total == $i ? "'$key'" : "'$key',";
+            $values .= $total == $i ? "'$value'" : "'$value',";
+            $i++;
+        }
 
+        $this->query .= "($keys) VALUES ($values) ";
+        return $this->query;
+    }
+
+    // Metodos Global
     public function where($registro, $value = null)
     {
-        if(empty($value)) $a = "";
+        if (empty($value)) $a = "";
         else $a = "= $value";
 
         $this->query .= "WHERE $registro $a";
@@ -42,14 +58,16 @@ class sql extends conectPDO
 
     public function whereLike($registro, $value = null)
     {
-        if(empty($value)) $a = "";
+        if (empty($value)) $a = "";
         else $a = "LIKE '%$value%'";
 
         $this->query .= "WHERE $registro $a";
         return $this;
     }
 
-    public function OrderBy($column,$order) {
+    // Metodos do select
+    public function OrderBy($column, $order)
+    {
         $this->query .= " ORDER BY $column $order";
         return $this;
     }
