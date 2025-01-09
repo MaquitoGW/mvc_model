@@ -1,61 +1,84 @@
 <?php
-
 namespace lib;
+use lib\Response;
 
 class Routes
 {
-
-    protected $end;
-    protected $segment;
+    protected $uri;
+    protected $err;
+    protected $check = [];
+    protected $segments = [];
 
     public function __construct()
     {
-        $uri = $_SERVER['REQUEST_URI'];
-
-        // Divide o caminho em partes com base na barra (/)
-        $path = explode('/', trim($uri, '/'));
-
-        // Pega o último valor do array resultante
-        $this->end = end($path);
-
-        // Verifica o valor anterior ao último segmento
-        $this->segment = count($path) > 1 ? $path[count($path) - 2] : null;
-    }
-
-    public static function group($prefix, $callback)
-    {
-        $i = new self();
-        $segment = $i->segment;
-
-        if ($segment == $prefix) {
-            $_SESSION['route_prefix'] = $prefix;
-            $callback();
+        $this->uri = $_SERVER['REQUEST_URI'];
+        $separator = ["#","?", "&"];
+        foreach ($separator as $key) {
+            if(is_array(explode($key,$this->uri))) {
+                $this->uri = explode($key,$this->uri)[0];
+            }
         }
     }
 
-    public static function get($route, $view)
+    public function prefix($value)
     {
-        $i = new self();
-        $end = $i->end;
-        $segment = $i->segment;
+        $this->segments = []; // Reinicia array
+        $this->segments[] = $value; // Adiciona segmento do grupo
+        $this->check[] = $value; // Adiciona segmento do grupo para verificacao
+        $this->err++;
 
+        return $this;
+    }
 
-        if (isset($_SESSION['route_prefix'])) $prefix = $_SESSION['route_prefix'];
-        else $prefix = null;
+    public function group($callback)
+    {
+        $callback($this);
+    }
 
-        if ($segment == $prefix && $route == $end) {
-            return require 'views/' . $view . '.html';
-            session_destroy();
-        } elseif (empty($prefix) && $route == $end) {
-            $path = explode('/', trim($route, '/'));
-            if(count($path) >! 1) return require 'views/' . $view . '.html';
-        } else {
-            require 'views/err.html';
+    public function get($parament, $array, $no_group = false)
+    {
+        if ($this->header($parament, $no_group, "GET")) {
+            // Obter classe e o metodo
+            $class = $array[0];
+            $method = $array[1];
+
+            // Instanciar classe e chamar metodo
+            $controller = new $class();
+            $controller->$method();
             exit;
         }
     }
 
-    public static function post() {}
+    public function post($parament, $view, $no_group = false)
+    {
+        if ($this->header($parament, $no_group, "POST")) {
+            echo $parament;
+            exit;
+        }
+    }
 
-    public static function all() {}
+    // Verifica URL e Methodo enviado
+    public function header($parament, $no_group, $method)
+    {
+
+        $this->check[] = trim($parament, '/');
+        if (!$no_group) {
+            $this->segments[] = $parament;
+            $parament = reset($this->segments) . '/' . end($this->segments);
+        }
+
+        if ('/' . $parament == $this->uri) {
+            if ($_SERVER['REQUEST_METHOD'] == $method) return true;
+            else Response::abort(405);
+        } else {
+            $this->err++;
+            return false;
+        }
+    }
+
+    // Finalizar a rota
+    public function exit()
+    {
+        if (count($this->check)) Response::abort(404);
+    }
 }
