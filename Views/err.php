@@ -46,10 +46,13 @@
 <body>
     <div class="container">
         <div class="error-wrapper">
-            <h1 class="error-code">404</h1>
-            <p class="error-message">Ops! A página que você está procurando não foi encontrada.</p>
+            <h1 class="error-code"><?= $code ?></h1>
+            <p class="error-message"><?= $message ?></p>
         </div>
     </div>
 </body>
 
 </html>
+<?php
+exit;
+?>
