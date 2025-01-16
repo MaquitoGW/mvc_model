@@ -4,52 +4,45 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Página Não Encontrada - 404</title>
+    <title><?= $message ?> - <?= $code ?></title>
     <style>
+        :root {
+            --primaria: #0366d6;
+            --background: #0f1114;
+            --backgroundCL: #161b22;
+            --cinzaFFF: #cfcfcf;
+            --other: #2f363d;
+        }
+
         body {
             margin: 0;
             padding: 0;
             font-family: Arial, sans-serif;
-            background-color: #f0f0f0;
-            color: #333;
+            background-color: var(--background);
+            color: var(--other);
             display: flex;
-            align-items: center;
             justify-content: center;
             height: 100vh;
-        }
-
-        .container {
-            text-align: center;
-        }
-
-        .error-wrapper {
-            background: #fff;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        }
-
-        .error-code {
-            font-size: 100px;
-            color: #ff6b6b;
-            margin: 0;
+            flex-wrap: wrap;
+            align-content: center;
         }
 
         .error-message {
-            font-size: 18px;
-            color: #555;
+            font-size: 1.5rem;
             margin: 20px 0;
+        }
+
+        footer {
+            font-size: 0.9rem;
+            width: 100%;
+            text-align: center;
         }
     </style>
 </head>
 
 <body>
-    <div class="container">
-        <div class="error-wrapper">
-            <h1 class="error-code"><?= $code ?></h1>
-            <p class="error-message"><?= $message ?></p>
-        </div>
-    </div>
+    <p class="error-message"><?= $code ?> | <?= $message ?></p>
+    <footer>&copy; <?= date("Y") ?> MVC por MaquitoGW </footer>
 </body>
 
 </html>

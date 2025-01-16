@@ -4,18 +4,27 @@ namespace lib;
 
 class Response
 {
+    private static $session = false;
     private $routeName;
     private $querys = [];
 
     public function __construct()
     {
-        session_start();
+        $this->startSession();
+    }
+
+    // Iniciar sessão
+    protected static function startSession() {
+        if (self::$session === false) {
+            session_start();
+            self::$session = true;
+        }
     }
 
     // Exbir view
     public static function view($value)
     {
-        return require "views/" . $value . ".html";
+        return require "views/" . $value . ".php";
     }
 
     // obter rota
@@ -27,20 +36,15 @@ class Response
     // Redirecione para a url especifica
     public static function redirect($url)
     {
-        $instance = new Self();
         $_SESSION['HTTP_URI'] = $_SERVER['REQUEST_URI']; // passar uri atual
         header("Location: " . $url);
-        return $instance;
         exit;
     }
 
     // Volta a página anterior
     public static function back()
     {
-        $instance = new Self();
         header("Location: " . $_SESSION['HTTP_URI']);
-        return $instance;
-        exit;
     }
 
     // Obtem os atributos da url
@@ -49,9 +53,21 @@ class Response
         return isset($_GET[$query]) ? $_GET[$query] : false;
     }
 
-    public static function message() {}
+    public static function message($name, $value) {
+        self::startSession();
+        $_SESSION[$name] = $value;
+        return new Self();
+    }
 
-    public static function getMessage() {}
+    public static function getMessage($name) {
+        self::startSession();
+        if (isset($_SESSION[$name])) {
+            $message = $_SESSION[$name];
+            unset($_SESSION[$name]);
+            return $message;
+        }
+        return null;
+    }
 
 
     public static function abort($code, $message = null)
