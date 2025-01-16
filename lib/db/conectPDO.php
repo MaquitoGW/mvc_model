@@ -5,7 +5,7 @@ namespace lib\db;
 use Exception;
 use PDO;
 use PDOException;
-use lib\config;
+use lib\IsConfig;
 
 class conectPDO
 {
@@ -20,11 +20,11 @@ class conectPDO
     {
 
         // Obtendo configurações do .env
-        $this->db = config::env("DB");
-        $this->db_host = config::env("DB_HOST");
-        $this->db_name = config::env("DB_NAME");
-        $this->user = config::env("DB_USER");
-        $this->password = config::env("DB_PASS");
+        $this->db = IsConfig::env("DB");
+        $this->db_host = IsConfig::env("DB_HOST");
+        $this->db_name = IsConfig::env("DB_NAME");
+        $this->user = IsConfig::env("DB_USER");
+        $this->password = IsConfig::env("DB_PASS");
 
 
         // Instanciando nova coneção
@@ -38,7 +38,7 @@ class conectPDO
             //Retorna coneção
             return $this->PDO;
         } catch (PDOException $e) {
-            return "Erro com o Banco de Dados: " . config::env("DB");
+            return "Erro com o Banco de Dados: " . IsConfig::env("DB");
         } catch (Exception $e) {
             return "Ocorreu um erro: " . $e->getMessage();
         }

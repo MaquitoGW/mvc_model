@@ -10,6 +10,7 @@ $route->prefix("teste")->group(function ($e) {
 });
 
 $route->get("", [Site::class, "index"], true);
+
 $route->post("teste2", "index", true);
 $route->get("teste3", "index", true);
 

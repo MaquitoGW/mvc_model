@@ -1,0 +1,177 @@
+* {
+    transition: all .5s ease-in-out;
+    font-family: Nunito;
+}
+
+body {
+    background-color: #181818;
+    color: #ffffff;
+    margin: 0;
+    padding: 0;
+}
+
+.container {
+    width: auto;
+}
+
+header {
+    position: sticky;
+    top: 0;
+    left: 0;
+    display: flex;
+    text-align: center;
+    flex-wrap: nowrap;
+    padding: 15px 100px;
+    z-index: 1;
+}
+
+.sticky {
+    backdrop-filter: blur(20px) brightness(0.5);
+}
+
+.sticky h1,
+.sticky ul {
+    color: #979595;
+}
+
+header h1 {
+    color: #6200ea;
+    margin: 0;
+    font-family: Aldrich;
+}
+
+nav {
+    width: 100%;
+    position: relative;
+    right: 0;
+    display: grid;
+    align-items: center;
+    justify-content: center;
+    justify-items: center;
+    font-size: 80%;
+}
+
+nav ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    position: absolute;
+    right: 0;
+}
+
+nav ul li {
+    display: inline;
+    margin: 0 15px;
+}
+
+nav ul li a {
+    position: relative;
+    text-decoration: none;
+    color: #ffffff;
+    font-size: 1.2em;
+    transition: color 0.3s;
+}
+
+nav ul li a::after {
+    display: block;
+    position: absolute;
+    content: '';
+    width: 0;
+    height: 3px;
+    background: #6200ea;
+    border-radius: 100px;
+    left: 50%;
+    transform: translateX(-50%);
+    margin-top: 10px;
+    transition: width 0.3s ease-in-out;
+}
+
+nav ul li a:hover::after {
+    width: 20px;
+}
+
+nav ul li a:hover {
+    color: #6200ea;
+}
+
+section {
+    margin: 50px 100px;
+}
+
+section h2 {
+    color: #6200ea;
+    font-size: 2em;
+}
+
+section .avatar {
+    width: 250px;
+    height: auto;
+    border-radius: 25px;
+    box-shadow: 5px 5px 1px 1px #6200ea;
+}
+
+section#sobre-mim {
+    margin: 50px 0;
+    padding: 50px 210px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: nowrap;
+    backdrop-filter: brightness(0.5);
+}
+
+section .left {
+    margin: 0 100px;
+}
+
+footer {
+    text-align: center;
+    padding: 20px 0;
+    background-color: #333;
+    margin-top: 50px;
+}
+
+footer p {
+    margin: 0;
+}
+
+.social-links a {
+    margin: 0 10px;
+    text-decoration: none;
+    color: #ffffff;
+    transition: color 0.3s;
+}
+
+.social-links a:hover {
+    color: #6200ea;
+}
+
+.skills-list,
+.contact-list {
+    list-style: none;
+    padding: 0;
+}
+
+.skills-list li,
+.contact-list li {
+    background-color: #222;
+    padding: 10px;
+    margin: 5px 0;
+    border-radius: 5px;
+}
+
+.skills-list li {
+    display: inline-block;
+    margin: 5px;
+}
+
+.portfolio-link {
+    color: #6200ea;
+    text-decoration: none;
+    font-weight: bold;
+    transition: color 0.3s;
+}
+
+.portfolio-link:hover {
+    color: #ffffff;
+}

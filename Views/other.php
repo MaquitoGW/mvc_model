@@ -6,6 +6,10 @@
     <title>Teste</title>
 </head>
 <body>
-    Segundo documento sem segmento
+    Segundo documento sem segmento 
+    <?php foreach ($maicon as $value):?>
+        <br><?= $value ?> 
+    <?php endforeach;?>
+    <img src="img/test.png" alt="">
 </body>
 </html>

@@ -3,7 +3,7 @@ namespace lib;
 
 use Dotenv\Dotenv;
 
-class config
+class IsConfig
 {
     public static function env($e)
     {
