@@ -5,8 +5,6 @@ namespace lib;
 class Response
 {
     private static $session = false;
-    private $routeName;
-    private $querys = [];
 
     public function __construct()
     {
@@ -14,7 +12,8 @@ class Response
     }
 
     // Iniciar sessão
-    protected static function startSession() {
+    protected static function startSession()
+    {
         if (self::$session === false) {
             session_start();
             self::$session = true;
@@ -22,13 +21,21 @@ class Response
     }
 
     // Exbir view
-    public static function view($value)
+    public static function view($viewRoute, $variablesInArray = [])
     {
-        return require "views/" . $value . ".php";
+        // Tranforma arrays em variaveis
+        if (!empty($variablesInArray)) {
+            foreach ($variablesInArray as $key => $value) {
+                ${$key} = $value;
+            }
+        }
+
+        return require "views/" . $viewRoute . ".php";
     }
 
     // obter rota
-    public static function route($name) {
+    public static function route($name)
+    {
         $instance = new Self();
         return $instance;
     }
@@ -53,13 +60,15 @@ class Response
         return isset($_GET[$query]) ? $_GET[$query] : false;
     }
 
-    public static function message($name, $value) {
+    public static function message($name, $value)
+    {
         self::startSession();
         $_SESSION[$name] = $value;
         return new Self();
     }
 
-    public static function getMessage($name) {
+    public static function getMessage($name)
+    {
         self::startSession();
         if (isset($_SESSION[$name])) {
             $message = $_SESSION[$name];
