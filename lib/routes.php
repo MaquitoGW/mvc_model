@@ -15,13 +15,13 @@ class Routes
     public function __construct()
     {
         $mountURL = $_SERVER["REQUEST_SCHEME"] . "://" . $_SERVER['HTTP_HOST'] . $_SERVER["REQUEST_URI"];
-        $mountURL = str_replace(["/", "."], "-", $mountURL);
-        $url = str_replace(["/", "."], "-", config::env("URL"));
+        $urlSTR = str_replace(["/", "."], "-", $mountURL);
+        $urlENV = str_replace(["/", "."], "-", config::env("URL"));
 
-        preg_match("/" . $url . "/", $mountURL, $valid);
+        preg_match("/" . $urlENV . "/", $urlSTR, $valid);
 
         if (!empty($valid)) {
-            $this->uri = str_replace($url, "/", $mountURL);
+            $this->uri = str_replace(config::env("URL"), "/", $mountURL);
             $separator = ["#", "?", "&"];
             foreach ($separator as $key) {
                 if (is_array(explode($key, $this->uri))) {
@@ -29,6 +29,7 @@ class Routes
                 }
             }
         } else Response::abort(503);
+        $this->IsAssets(); // Verificar se e algum asset
     }
 
     public function prefix($value)
@@ -84,6 +85,21 @@ class Routes
         } else {
             $this->err++;
             return false;
+        }
+    }
+
+    // Verificar se algum asset na url
+    private function IsAssets()
+    {
+        $assets = ['img', 'js', 'css', 'fonts'];
+        $pathURI = explode("/", $this->uri);
+        foreach ($assets as $path) {
+            if ($pathURI[1] == $path) {
+                $filePath = __DIR__ . "/../public/" . $pathURI[1] . "/" . end($pathURI);
+                $mimeType = mime_content_type($filePath);
+                header("Content-Type: $mimeType");
+                readfile($filePath);
+            }
         }
     }
 
