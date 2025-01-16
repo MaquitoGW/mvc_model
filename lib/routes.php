@@ -1,6 +1,9 @@
 <?php
+
 namespace lib;
+
 use lib\Response;
+use lib\config;
 
 class Routes
 {
@@ -11,13 +14,21 @@ class Routes
 
     public function __construct()
     {
-        $this->uri = $_SERVER['REQUEST_URI'];
-        $separator = ["#","?", "&"];
-        foreach ($separator as $key) {
-            if(is_array(explode($key,$this->uri))) {
-                $this->uri = explode($key,$this->uri)[0];
+        $mountURL = $_SERVER["REQUEST_SCHEME"] . "://" . $_SERVER['HTTP_HOST'] . $_SERVER["REQUEST_URI"];
+        $mountURL = str_replace(["/", "."], "-", $mountURL);
+        $url = str_replace(["/", "."], "-", config::env("URL"));
+
+        preg_match("/" . $url . "/", $mountURL, $valid);
+
+        if (!empty($valid)) {
+            $this->uri = str_replace($url, "/", $mountURL);
+            $separator = ["#", "?", "&"];
+            foreach ($separator as $key) {
+                if (is_array(explode($key, $this->uri))) {
+                    $this->uri = explode($key, $this->uri)[0];
+                }
             }
-        }
+        } else Response::abort(503);
     }
 
     public function prefix($value)
