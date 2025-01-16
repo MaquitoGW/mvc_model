@@ -1,0 +1,29 @@
+O que falta implementar?
+1. Gerenciador de Arquivos (Controlador de Arquivos)
+
+    - Upload de arquivos (com verificação de tipo de arquivo e tamanho).
+    - Criação e remoção de pastas.
+    - Renomear arquivos e mover arquivos entre pastas.
+    - Apagar arquivos (com confirmação para evitar remoção acidental).
+    - Verificar permissões de arquivos e diretórios para garantir segurança.
+
+2. Middleware
+Adicionar suporte a middleware pode melhorar a segurança e o controle de rotas. Middlewares podem ser usados para:
+
+    - Autenticação e autorização, restringindo o acesso a certas rotas.
+    - Validação de dados, onde você pode verificar o corpo de uma requisição antes de processá-la.
+    - Verificação de CSRF (Cross-Site Request Forgery) para proteger requisições de formulários POST.
+    - Cacheamento de conteúdo para melhorar o desempenho em páginas acessadas com frequência.
+    
+3. Validação de Formulários
+Uma camada de validação de entrada de dados é fundamental para a segurança e consistência do sistema. Você pode criar um sistema que valide dados antes de enviar para o controlador, como:
+
+    - Verificação de campos obrigatórios, valores numéricos, e-mails válidos, etc.
+    - Mensagens de erro amigáveis que retornam ao usuário em caso de falha de validação.
+
+4. Autenticação e Gerenciamento de Sessões
+Se ainda não tiver, adicionar uma camada de autenticação seria importante. Funcionalidades como:
+
+    - Registro de usuários, login/logout, e recuperação de senha.
+    - Gerenciamento de sessões e cookies de forma segura.
+    - Sistema de permissões (papéis de usuário, como admin, editor, usuário normal).
