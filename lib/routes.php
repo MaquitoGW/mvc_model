@@ -3,7 +3,7 @@
 namespace lib;
 
 use lib\Response;
-use lib\config;
+use lib\IsConfig;
 
 class Routes
 {
@@ -16,12 +16,12 @@ class Routes
     {
         $mountURL = $_SERVER["REQUEST_SCHEME"] . "://" . $_SERVER['HTTP_HOST'] . $_SERVER["REQUEST_URI"];
         $urlSTR = str_replace(["/", "."], "-", $mountURL);
-        $urlENV = str_replace(["/", "."], "-", config::env("URL"));
+        $urlENV = str_replace(["/", "."], "-", IsConfig::env("URL"));
 
         preg_match("/" . $urlENV . "/", $urlSTR, $valid);
 
         if (!empty($valid)) {
-            $this->uri = str_replace(config::env("URL"), "/", $mountURL);
+            $this->uri = str_replace(IsConfig::env("URL"), "/", $mountURL);
             $separator = ["#", "?", "&"];
             foreach ($separator as $key) {
                 if (is_array(explode($key, $this->uri))) {
@@ -91,14 +91,25 @@ class Routes
     // Verificar se algum asset na url
     private function IsAssets()
     {
-        $assets = ['img', 'js', 'css', 'fonts'];
+        $assets = [
+            'img' => null, 
+            'js' => 'application/javascript', 
+            'css' => 'text/css', 
+            'fonts' => null
+        ];
+        
         $pathURI = explode("/", $this->uri);
-        foreach ($assets as $path) {
+        foreach ($assets as $path => $value) {
             if ($pathURI[1] == $path) {
-                $filePath = __DIR__ . "/../public/" . $pathURI[1] . "/" . end($pathURI);
-                $mimeType = mime_content_type($filePath);
-                header("Content-Type: $mimeType");
-                readfile($filePath);
+                if (isset(explode(".", end($pathURI))[1])) {
+                    $filePath = __DIR__ . "/../public/" . $pathURI[1] . "/" . end($pathURI);
+                    if (file_exists($filePath)) {
+                        $mimeType = !is_null($value) ? $value : mime_content_type($filePath);
+                        header("Content-Type: $mimeType");
+                        readfile($filePath);
+                        exit;
+                    } else Response::abort(404);
+                } else Response::abort(404);
             }
         }
     }
