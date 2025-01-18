@@ -1,36 +1,19 @@
 <?php
-require 'vendor/autoload.php';
-// index.php
+/**
+ * MVC-MODEl
+ * Created by MaquitoGW
+ * @version 1.0-beta
+ * @year 2025
+ * 
+ * Portfolio: https://maquitogw.awefortec.com
+ * GitHub: https://github.com/maquitogw
+ * LinkedIn: https://www.linkedin.com/in/maquitogw
+ * 
+ * Licensed under the MIT License
+ */
 
-// Inclui o autoloader do Composer
+// Autoload de dependências
+require_once 'vendor/autoload.php';
 
-
-
-// use routes;
-require 'routes/web.php';
-
-
-
-// Agora você pode usar suas classes com seus namespaces
-// use lib\db\sql;
-// use lib\config;
-
-// echo json_encode(
-//     sql::SELECT("products")
-//         ->where("id")
-//         ->OrderBy("id", "ASC")
-//         ->all()
-// );
-
-// echo json_encode(
-//     sql::INSERT("banners")->add($_POST)
-// );
-
-?>
-
-<!-- <form action="#" method="post">
-    <input type="text" name="title" placeholder="title"><br>
-    <input type="text" name="description" placeholder="description"><br>
-    <input type="text" name="link" placeholder="link"><br>
-    <br><button type="submit">Enviar</button>
-</form> -->
+// Rotas da aplicação
+require_once 'routes/web.php';
