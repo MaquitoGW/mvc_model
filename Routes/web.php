@@ -1,23 +1,18 @@
 <?php
+
 use lib\Routes;
 use Controllers\Site;
 
 $route = new Routes();
-
-$route->prefix("teste")->group(function ($e) {
-    $e->get("maicon", [Site::class, "index2"]);
-    $e->get("maicon2", "");
-});
-
+$route->get("form/{id}", [Site::class, "form"], true);
 $route->get("", [Site::class, "index"], true);
+$route->get("form", [Site::class, "form"], true);
 
-$route->post("teste2", "index", true);
-$route->get("teste3", "index", true);
 
-$route->prefix("ty")->group(function ($e) {
-    $e->get("val", "");
-    $e->get("val2", "");
-});
+
+$route->post("recive", [Site::class, "reciveForm"], true)->name("recive");
+
+
 
 $route->exit();
 
