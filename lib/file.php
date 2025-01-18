@@ -10,43 +10,26 @@ class File
     private static $directory;
     private static $response;
 
-    /**
-     * Função para criar diretório.
-     * 
-     * @param string $path Caminho relativo ao diretório base.
-     * @param int $permission Permissões para o diretório.
-     * @param int $action Define se vai ter uma acão.
-     * @return string|bool|self Retorna o caminho do diretório criado ou existente, ou false em caso de erro, ou um encadeamento caso seja action seja verdadeiro.
-     */
     public static function IsDir($path, $action = false, $permission = 0777)
     {
         self::$directory = self::storage() . trim($path, '/') . '/';
 
-        if (file_exists(self::$directory)) {
-            // Caso action seja verdadeiro cria diretório se não passa caminho
-            if ($action) {
-                // Verificar se o diretório já existe
-                if (!is_dir(self::$directory)) {
-                    if (!mkdir(self::$directory, $permission, true)) self::$response = [false, "Falha ao criar o diretório.", "dir"];
-                    else  self::$response = [true, self::$directory, "dir"];
-                } else self::$response = [false, "O diretório já existe.", "dir"];
-            } else self::$response = [true, self::$directory, "dir"];
-        } else self::$response = [false, "O diretório não existe", "dir"];
+        // Caso action seja verdadeiro cria diretório se não passa caminho
+        if ($action) {
+            // Verificar se o diretório já existe
+            if (!is_dir(self::$directory)) {
+                if (!mkdir(self::$directory, $permission, true)) self::$response = [false, "Falha ao criar o diretório.", "dir"];
+                else  self::$response = [true, self::$directory, "dir"];
+            } else self::$response = [false, "O diretório já existe.", "dir"];
+        } else {
+            if (file_exists(self::$directory)) {
+                self::$response = [true, self::$directory, "dir"];
+            } else self::$response = [false, "O diretório não existe", "dir"];
+        }
 
         return new Self();
     }
 
-    public static function get($value = false)
-    {
-        return $value ? self::$response[1] : self::$response[0];
-    }
-
-    /**
-     * Verifica se o arquivo existe no caminho fornecido
-     * 
-     * @param string $path Caminho do arquivo
-     * @return self Retorna true se o arquivo existir, caso contrário, false.
-     */
     public static function isFile($value)
     {
         $file = self::storage() . trim($value, '/');
@@ -58,13 +41,8 @@ class File
         return new Self();
     }
 
-    // /**
-    //  * Renomeia um arquivo ou diretório.
-    //  * 
-    //  * @param string $oldName Nome antigo do arquivo ou diretório.
-    //  * @param string $newName Novo nome do arquivo ou diretório.
-    //  * @return bool Retorna true em caso de sucesso, false em caso de erro.
-    //  */
+    // ACTIONS
+
     public static function rename($newName)
     {
         $newName = trim($newName, "/");
@@ -81,12 +59,6 @@ class File
         return new Self();
     }
 
-    /**
-     * Deleta um arquivo ou diretório.
-     * 
-     * @param string $path Caminho do arquivo ou diretório.
-     * @return self Retorna true em caso de sucesso, false em caso de erro.
-     */
     public static function delete()
     {
         if (self::$response[0]) {
@@ -114,31 +86,112 @@ class File
         return rmdir($dir);
     }
 
-    /**
-     * Altera as permissões de um arquivo ou diretório.
-     * 
-     * @param string $path Caminho do arquivo ou diretório.
-     * @param int $permission Permissão a ser atribuída.
-     * @return bool Retorna true em caso de sucesso, false em caso de erro.
-     */
-    public static function permissions($path, $permission)
+    public static function permissions($permission)
     {
-        $target = self::storage() . trim($path, '/');
-
-        if (!file_exists($target)) {
-            http_response_code(404);
-            echo "Erro: Arquivo ou diretório não encontrado.";
-            return false;
-        }
-
-        return chmod($target, $permission);
+        if (self::$response) {
+            chmod(self::$response[1], $permission);
+            self::$response = [true, "Permissões alteradas com sucesso"];
+        } else self::$response = [false, self::$response[1]];
+        return new Self();
     }
 
-    /**
-     * Função para obter o caminho base de storage.
-     * 
-     * @return string Retorna o caminho base da pasta de armazenamento.
-     */
+    public static function readfile()
+    {
+        if (self::$response[0]) {
+            if (self::$response[2] == "file") {
+                $filePath = self::$response[1];
+                $mineType = mime_content_type($filePath);
+
+                $fp = @fopen($filePath, 'rb');
+
+                $size = filesize($filePath); // File size
+                $length = $size; // Content length
+                $start = 0; // Start byte
+                $end = $size - 1; // End byte
+
+                header("Content-Type: " . $mineType);
+                header("Accept-Ranges: 0-$length");
+                if (isset($_SERVER['HTTP_RANGE'])) {
+
+                    $c_start = $start;
+                    $c_end = $end;
+
+                    list(, $range) = explode('=', $_SERVER['HTTP_RANGE'], 2);
+                    if (strpos($range, ',') !== false) {
+                        header('HTTP/1.1 416 Requested Range Not Satisfiable');
+                        header("Content-Range: bytes $start-$end/$size");
+                        exit;
+                    }
+                    if ($range == '-') {
+                        $c_start = $size - substr($range, 1);
+                    } else {
+                        $range = explode('-', $range);
+                        $c_start = $range[0];
+                        $c_end = (isset($range[1]) && is_numeric($range[1])) ? $range[1] : $size;
+                    }
+                    $c_end = ($c_end > $end) ? $end : $c_end;
+                    if ($c_start > $c_end || $c_start > $size - 1 || $c_end >= $size) {
+                        header('HTTP/1.1 416 Requested Range Not Satisfiable');
+                        header("Content-Range: bytes $start-$end/$size");
+                        exit;
+                    }
+                    $start = $c_start;
+                    $end = $c_end;
+                    $length = $end - $start + 1;
+                    fseek($fp, $start);
+                    header('HTTP/1.1 206 Partial Content');
+                }
+                header("Content-Range: bytes $start-$end/$size");
+                header("Content-Length: " . $length);
+
+                $buffer = 1024 * 8;
+                while (!feof($fp) && ($p = ftell($fp)) <= $end) {
+
+                    if ($p + $buffer > $end) {
+                        $buffer = $end - $p + 1;
+                    }
+                    set_time_limit(0);
+                    echo fread($fp, $buffer);
+                    flush();
+                }
+
+                fclose($fp);
+                exit;
+            } else self::$response = [false, "Isso não e um arquivo"];
+        } else self::$response = [false, self::$response[1]];
+
+        return new Self();
+    }
+
+    public static function save($filename, $path = null)
+    {
+        if (self::$response[0]) {
+            if (self::$response[2] == "file") {
+                $data = file_get_contents(self::$response[1]);
+                if (!is_null($path)) {
+                    $mountPath = self::storage() . ltrim($path, "/") . "/";
+                    if (file_exists($path)) $pathValeu = $path . $filename;
+                    elseif (file_exists($mountPath)) $pathValeu = $mountPath . $filename;
+                    else {
+                        $createDir = self::IsDir($path, true)->get(true);
+                        $pathValeu = $createDir  . $filename;
+                    }
+                } else $pathValeu = self::storage() . $filename;
+
+                file_put_contents($pathValeu, $data);
+                self::$response = [true, "Arquivo salvo com sucesso"];
+            } else self::$response = [false, "Isso não e um arquivo"];
+        } else self::$response = [false, self::$response[1]];
+
+        return new Self();
+    }
+
+
+    public static function get($value = false)
+    {
+        return $value ? self::$response[1] : self::$response[0];
+    }
+
     private static function storage()
     {
         $dir = str_replace("lib", "", __DIR__) . "storage";
