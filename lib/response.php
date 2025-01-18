@@ -36,8 +36,7 @@ class Response
     // obter rota
     public static function route($name)
     {
-        $instance = new Self();
-        return $instance;
+        return $_SESSION['routes'][$name];
     }
 
     // Redirecione para a url especifica
