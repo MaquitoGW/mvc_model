@@ -37,12 +37,17 @@
             width: 100%;
             text-align: center;
         }
+
+        footer a {
+            color: #0366d6;
+            text-decoration: none;
+        }
     </style>
 </head>
 
 <body>
     <p class="error-message"><?= $code ?> | <?= $message ?></p>
-    <footer>&copy; <?= date("Y") ?> MVC por MaquitoGW </footer>
+    <footer>&copy; <?= date("Y") ?> MVC Model por <a href="https://github.com/maquitogw">MaquitoGW</a></footer>
 </body>
 
 </html>
