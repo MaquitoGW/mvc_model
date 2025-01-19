@@ -10,6 +10,14 @@ class File
     private static $directory;
     private static $response;
 
+    /**
+     * Verifica se o diretório existe. Se o parâmetro $action for verdadeiro, cria o diretório.
+     *
+     * @param string $path O caminho do diretório.
+     * @param bool $action Se verdadeiro, cria o diretório se não existir.
+     * @param int $permission Permissão do diretório, padrão 0777.
+     * @return self Retorna a própria instância da classe.
+     */
     public static function IsDir($path, $action = false, $permission = 0777)
     {
         self::$directory = self::storage() . trim($path, '/') . '/';
@@ -30,6 +38,12 @@ class File
         return new Self();
     }
 
+    /**
+     * Verifica se o arquivo existe no caminho especificado.
+     *
+     * @param string $value Caminho do arquivo a ser verificado.
+     * @return self Retorna a própria instância da classe.
+     */
     public static function isFile($value)
     {
         $file = self::storage() . trim($value, '/');
@@ -41,8 +55,12 @@ class File
         return new Self();
     }
 
-    // ACTIONS
-
+    /**
+     * Renomeia o diretório ou arquivo identificado no último método chamado.
+     *
+     * @param string $newName Novo nome do arquivo ou diretório.
+     * @return self Retorna a própria instância da classe.
+     */
     public static function rename($newName)
     {
         $newName = trim($newName, "/");
@@ -59,6 +77,11 @@ class File
         return new Self();
     }
 
+    /**
+     * Deleta o diretório ou arquivo identificado no último método chamado.
+     *
+     * @return self Retorna a própria instância da classe.
+     */
     public static function delete()
     {
         if (self::$response[0]) {
@@ -77,6 +100,12 @@ class File
         return new Self();
     }
 
+    /**
+     * Deleta recursivamente todos os arquivos e diretórios de um diretório.
+     *
+     * @param string $dir Caminho do diretório a ser deletado.
+     * @return bool Retorna true se o diretório for removido com sucesso.
+     */
     private static function delTree($dir)
     {
         $files = array_diff(scandir($dir), array('.', '..'));
@@ -86,6 +115,12 @@ class File
         return rmdir($dir);
     }
 
+    /**
+     * Altera as permissões do diretório ou arquivo identificado no último método chamado.
+     *
+     * @param int $permission Nova permissão a ser atribuída.
+     * @return self Retorna a própria instância da classe.
+     */
     public static function permissions($permission)
     {
         if (self::$response) {
@@ -95,6 +130,11 @@ class File
         return new Self();
     }
 
+    /**
+     * Lê e envia o conteúdo de um arquivo para o navegador, suportando a funcionalidade de range.
+     *
+     * @return self Retorna a própria instância da classe.
+     */
     public static function readfile()
     {
         if (self::$response[0]) {
@@ -163,6 +203,13 @@ class File
         return new Self();
     }
 
+    /**
+     * Salva um arquivo em um diretório especificado ou no diretório de armazenamento padrão.
+     *
+     * @param string $filename Nome do arquivo a ser salvo.
+     * @param string|null $path Caminho do diretório onde o arquivo será salvo (opcional).
+     * @return self Retorna a própria instância da classe.
+     */
     public static function save($filename, $path = null)
     {
         if (self::$response[0]) {
@@ -187,6 +234,12 @@ class File
     }
 
 
+    /**
+     * Retorna a resposta do último método executado.
+     *
+     * @param bool $value Se verdadeiro, retorna o caminho do arquivo ou diretório.
+     * @return mixed Retorna o resultado do último método.
+     */
     public static function get($value = false)
     {
         return $value ? self::$response[1] : self::$response[0];
