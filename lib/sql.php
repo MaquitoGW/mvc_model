@@ -14,10 +14,14 @@ class sql
     protected $db_name;
     protected $user;
     protected $password;
-
     protected $PDO;
     protected $query;
 
+    /**
+     * Construtor
+     *
+     * Inicializa a conexão com o banco de dados utilizando configurações do arquivo .env.
+     */
     public function __construct()
     {
         // Obtendo configurações do .env
@@ -44,6 +48,12 @@ class sql
         }
     }
 
+    /**
+     * Cria uma query de INSERT na tabela especificada.
+     *
+     * @param string $tb Nome da tabela.
+     * @return sql Instância da classe para encadeamento de métodos.
+     */
     public static function INSERT($tb)
     {
         $i = new self();
@@ -51,6 +61,12 @@ class sql
         return $i;
     }
 
+    /**
+     * Cria uma query de SELECT na tabela especificada.
+     *
+     * @param string $tb Nome da tabela.
+     * @return sql Instância da classe para encadeamento de métodos.
+     */
     public static function SELECT($tb)
     {
         $i = new self();
@@ -58,7 +74,12 @@ class sql
         return $i;
     }
 
-    // Metodos do Insert
+    /**
+     * Adiciona os valores para o INSERT.
+     *
+     * @param array $array Array associativo com as colunas e valores a serem inseridos.
+     * @return sql Instância da classe para encadeamento de métodos.
+     */
     public function add($array)
     {
         $keys = implode(", ", array_keys($array));
@@ -71,7 +92,13 @@ class sql
     }
 
 
-    // Metodos Global
+    /**
+     * Adiciona uma cláusula WHERE à query.
+     *
+     * @param string $registro Nome da coluna.
+     * @param string|null $value Valor para a condição. Se não fornecido, será utilizado apenas o campo.
+     * @return sql Instância da classe para encadeamento de métodos.
+     */
     public function where($registro, $value = null)
     {
         if (empty($value)) $a = "";
@@ -81,6 +108,13 @@ class sql
         return $this;
     }
 
+    /**
+     * Adiciona uma cláusula WHERE com LIKE à query.
+     *
+     * @param string $registro Nome da coluna.
+     * @param string|null $value Valor para a condição. Se não fornecido, será utilizado apenas o campo.
+     * @return sql Instância da classe para encadeamento de métodos.
+     */
     public function whereLike($registro, $value = null)
     {
         if (empty($value)) $a = "";
@@ -90,13 +124,24 @@ class sql
         return $this;
     }
 
-    // Metodos do select
+    /**
+     * Adiciona uma cláusula ORDER BY à query.
+     *
+     * @param string $column Nome da coluna.
+     * @param string $order Ordem (ASC ou DESC).
+     * @return sql Instância da classe para encadeamento de métodos.
+     */
     public function OrderBy($column, $order)
     {
         $this->query .= " ORDER BY $column $order";
         return $this;
     }
 
+    /**
+     * Executa a query e retorna um único resultado.
+     *
+     * @return mixed Retorna o resultado da consulta.
+     */
     public function get()
     {
         $sql = $this->PDO->prepare($this->query);
@@ -105,6 +150,11 @@ class sql
         return $sql->fetch();
     }
 
+    /**
+     * Executa a query e retorna todos os resultados.
+     *
+     * @return array Retorna um array com todos os resultados da consulta.
+     */
     public function all()
     {
         $sql = $this->PDO->prepare($this->query);
@@ -113,6 +163,12 @@ class sql
         return $sql->fetchAll();
     }
 
+    /**
+     * Cria uma query de UPDATE na tabela especificada.
+     *
+     * @param string $tb Nome da tabela.
+     * @return sql Instância da classe para encadeamento de métodos.
+     */
     public static function UPDATE($tb)
     {
         $i = new self();
@@ -120,6 +176,12 @@ class sql
         return $i;
     }
 
+    /**
+     * Adiciona os valores para o UPDATE.
+     *
+     * @param array $array Array associativo com as colunas e valores a serem atualizados.
+     * @return sql Instância da classe para encadeamento de métodos.
+     */
     public function set($array)
     {
         $sets = "";
@@ -134,6 +196,12 @@ class sql
         return $this;
     }
 
+    /**
+     * Cria uma query de DELETE na tabela especificada.
+     *
+     * @param string $tb Nome da tabela.
+     * @return sql Instância da classe para encadeamento de métodos.
+     */
     public static function DELETE($tb)
     {
         $i = new self();
@@ -141,6 +209,11 @@ class sql
         return $i;
     }
 
+    /**
+     * Executa a query montada (INSERT, UPDATE, DELETE).
+     *
+     * @return bool Retorna true se a execução for bem-sucedida, caso contrário, false.
+     */
     public function execute()
     {
         $sql = $this->PDO->prepare($this->query);
