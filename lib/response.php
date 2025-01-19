@@ -6,12 +6,23 @@ class Response
 {
     private static $session = false;
 
+    /**
+     * Construtor da classe Response
+     * 
+     * O construtor chama o método startSession para garantir que a sessão seja iniciada.
+     */
     public function __construct()
     {
         $this->startSession();
     }
 
-    // Iniciar sessão
+    /**
+     * Iniciar Sessão
+     * 
+     * Verifica se a sessão já foi iniciada e a inicia caso ainda não tenha sido.
+     * 
+     * @return void
+     */
     protected static function startSession()
     {
         if (self::$session === false) {
@@ -20,7 +31,17 @@ class Response
         }
     }
 
-    // Exbir view
+    /**
+     * Exibir View
+     * 
+     * Exibe uma view específica localizada na pasta "views". As variáveis passadas
+     * no array são extraídas para uso dentro da view.
+     * 
+     * @param string $viewRoute Rota da view (use ponto para separar diretórios)
+     * @param array $variablesInArray Array de variáveis a serem passadas para a view
+     * 
+     * @return void
+     */
     public static function view($viewRoute, $variablesInArray = [])
     {
         // Tranforma arrays em variaveis
@@ -30,16 +51,34 @@ class Response
             }
         }
 
-        return require "views/" . $viewRoute . ".php";
+        $pathView = str_replace([".", "/"], "/", $viewRoute);
+        return require "views/" . $pathView . ".php";
     }
 
-    // obter rota
+    /**
+     * Obter Rota
+     * 
+     * Retorna uma rota armazenada na sessão com base em seu nome.
+     * 
+     * @param string $name Nome da rota a ser recuperada
+     * 
+     * @return string Rota armazenada na sessão
+     */
     public static function route($name)
     {
         return $_SESSION['routes'][$name];
     }
 
-    // Redirecione para a url especifica
+    /**
+     * Redirecionar para URL
+     * 
+     * Redireciona o usuário para uma URL específica. Armazena a URI atual antes
+     * de redirecionar.
+     * 
+     * @param string $url URL para a qual o usuário será redirecionado
+     * 
+     * @return void
+     */
     public static function redirect($url)
     {
         $_SESSION['HTTP_URI'] = $_SERVER['REQUEST_URI']; // passar uri atual
@@ -47,18 +86,42 @@ class Response
         exit;
     }
 
-    // Volta a página anterior
+    /**
+     * Voltar para a Página Anterior
+     * 
+     * Redireciona o usuário de volta à página anterior, usando a URI salva na sessão.
+     * 
+     * @return void
+     */
     public static function back()
     {
         header("Location: " . $_SESSION['HTTP_URI']);
     }
 
-    // Obtem os atributos da url
+    /**
+     * Obter Atributos da URL
+     * 
+     * Recupera o valor de uma query string na URL com base no nome do parâmetro.
+     * 
+     * @param string $query Nome do parâmetro a ser recuperado
+     * 
+     * @return mixed Valor do parâmetro ou false se não existir
+     */
     public static function attributes($query)
     {
         return isset($_GET[$query]) ? $_GET[$query] : false;
     }
 
+    /**
+     * Definir Mensagem na Sessão
+     * 
+     * Armazena uma mensagem na sessão com um nome e valor específicos.
+     * 
+     * @param string $name Nome da mensagem
+     * @param mixed $value Valor da mensagem
+     * 
+     * @return self Instância da própria classe para permitir encadeamento de métodos
+     */
     public static function message($name, $value)
     {
         self::startSession();
@@ -66,6 +129,15 @@ class Response
         return new Self();
     }
 
+    /**
+     * Obter Mensagem da Sessão
+     * 
+     * Retorna uma mensagem armazenada na sessão e a remove depois de acessada.
+     * 
+     * @param string $name Nome da mensagem a ser recuperada
+     * 
+     * @return mixed Valor da mensagem ou null se não existir
+     */
     public static function getMessage($name)
     {
         self::startSession();
@@ -78,6 +150,17 @@ class Response
     }
 
 
+    /**
+     * Abortar a Execução com um Código de Erro HTTP
+     * 
+     * Encerra a execução e exibe uma página de erro com base no código HTTP fornecido.
+     * Pode exibir uma mensagem personalizada.
+     * 
+     * @param int $code Código de erro HTTP
+     * @param string|null $message Mensagem de erro personalizada (opcional)
+     * 
+     * @return void
+     */
     public static function abort($code, $message = null)
     {
         $errorCodes = [
