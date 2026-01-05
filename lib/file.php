@@ -20,7 +20,7 @@ class File
      */
     public static function IsDir($path, $action = false, $permission = 0777)
     {
-        self::$directory = self::storage() . trim($path, '/') . '/';
+        self::$directory = self::storage() . ltrim(trim($path, '/'), "/") . '/';
 
         // Caso action seja verdadeiro cria diretório se não passa caminho
         if ($action) {
@@ -46,7 +46,8 @@ class File
      */
     public static function isFile($value)
     {
-        $file = self::storage() . trim($value, '/');
+        $value = ltrim($value, "/");
+        $file = self::storage() . ltrim(trim($value, '/'), '/');
 
         if (file_exists($value)) self::$response = [true, $value, "file"];
         elseif (file_exists($file)) self::$response = [true, $file, "file"];
@@ -63,7 +64,7 @@ class File
      */
     public static function rename($newName)
     {
-        $newName = trim($newName, "/");
+        $newName = ltrim(trim($newName, "/"), "/");
 
         if (self::$response[0]) {
             $oldName = explode("/", self::$response[1]);

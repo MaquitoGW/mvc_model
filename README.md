@@ -5,6 +5,19 @@
 ###
 
 <div align="center">
+  <h1>MVC Model - Framework PHP</h1>
+  <p><strong>Versão 1.0-beta</strong> | Inspirado no Laravel com toques personalizados</p>
+  
+  ### 📚 [DOCUMENTAÇÃO PROFISSIONAL HTML](documentation.html)
+  
+  **[👉 Clique aqui para ver a documentação completa e interativa](documentation.html)**
+  
+  Ou acesse a [página de índice](docs.html) para navegar por todas as documentações.
+</div>
+
+###
+
+<div align="center">
   <a href="https://www.linkedin.com/in/maquitogw/" target="_blank">
     <img src="https://img.shields.io/static/v1?message=LinkedIn&logo=linkedin&label=&color=0077B5&logoColor=white&labelColor=&style=for-the-badge" height="25" alt="linkedin logo"  />
   </a>
@@ -39,9 +52,10 @@ Se você tem sugestões de melhorias ou correções, fique à vontade para abrir
 
 ### 🔮 Funcionalidades Futuras
 
-- [❌] Middleware
-- [❌] Validação de formulários
-- [❌] Autenticação e Gerenciamento de SessõesSuporte a migrações de banco de dados
+- [✅] Middleware
+- [✅] Validação de formulários
+- [✅] Autenticação e Gerenciamento de Sessões
+- [❌] Suporte a migrações de banco de dados
 
 ### 🆙 Como Baixar e Usar
 > **Última versão**: v1.0-beta
@@ -82,26 +96,47 @@ Esta documentação fornece uma explicação detalhada de como configurar rotas,
 
 ### 1. Configuração do Ambiente
 
-Abra o arquivo `.env` na raiz do seu projeto e configure as variáveis do banco de dados e a URL do seu site:
+Abra o arquivo `.env` na raiz do seu projeto e configure as variáveis do banco de dados, URL e modo:
 
 ```ini
+# URL do Site
+URL="http://localhost/"
+
+# Modo da Aplicação (Dev ou Production)
+MODE=Dev
+
+# Banco de Dados
 DB=mysql
 DB_HOST=localhost
 DB_NAME=mvc
 DB_USER=root
 DB_PASS=
 
-# Configure a URL do seu site
-URL="http://localhost/"
+# Debug
+DEBUG=true
 ```
 
-Antes de rodar o projeto, você precisará instalar as dependências do Composer. No terminal, dentro da pasta do projeto, execute o seguinte comando:
+**Configuração do Modo:**
+
+```ini
+# Modo Dev - Desenvolvimento
+MODE=Dev
+# - Exibe erros e exceções
+# - Ativa debug (dd, dump, logView, cutErr)
+# - Mostra stack trace detalhado
+
+# Modo Production - Produção
+MODE=Production
+# - Oculta erros do usuário
+# - Registra erros em storage/logs/php_errors.log
+# - Desativa debug
+```
+
+Antes de rodar o projeto, instale as dependências:
 
 ```bash
 composer install
 ```
-
-Isso irá baixar todas as dependências necessárias para o funcionamento do seu projeto.
 
 
 ### 2. Estrutura de Arquivos Estáticos
@@ -319,6 +354,484 @@ $file = $request->files('upload');
 // Acessando cabeçalho
 $userAgent = $request->header('user-agent');
 ```
+
+## Sistema de Debug com Estilo
+
+Sistema de debug similar ao Laravel com exibição visual atraente. As funções de debug funcionam apenas quando `DEBUG=true` está configurado no arquivo `.env`.
+
+### Configuração
+
+```ini
+# .env
+DEBUG=true   # Habilita debug
+DEBUG=false  # Desabilita debug
+```
+
+### Funções de Debug
+
+#### `dd(...$vars)`
+Exibe variáveis com estilo e interrompe a execução.
+
+```php
+dd($usuario, $dados); // Exibe e para tudo
+```
+
+#### `dump(...$vars)`
+Exibe variáveis com estilo sem interromper a execução.
+
+```php
+dump($usuario, $dados); // Exibe e continua
+```
+
+#### `logView($data, $label = 'INFO')`
+Armazena informações em log no arquivo `storage/logs/debug.log`. Útil para registrar dados durante a execução.
+
+```php
+logView($usuario, 'USER_INFO'); // Registra em storage/logs/debug.log
+logView(['status' => 'ok'], 'PROCESS');
+```
+
+#### `cutErr($callback, $logError = false)`
+Captura erros com `try-catch`. Exibe o erro na tela ou registra em log conforme o parâmetro.
+
+**Parâmetros:**
+- `$callback`: Função a ser executada
+- `$logError`: `false` = exibe na tela (padrão), `true` = salva em `storage/logs/errors.log`
+
+```php
+// Exibir erro na tela
+cutErr(function() {
+    $resultado = sql::SELECT("usuarios")->where("id", 999)->first();
+    echo "ID do usuário: " . $resultado['id'];
+});
+
+// Registrar erro em log
+cutErr(function() {
+    $arquivo = fopen('arquivo_inexistente.txt', 'r');
+}, true); // Erro será salvo em storage/logs/errors.log
+```
+
+**Exemplo com autenticação:**
+```php
+cutErr(function() {
+    $usuario = sql::SELECT("usuarios")->where("email", $_POST['email'])->first();
+    
+    if (!$usuario || !password_verify($_POST['senha'], $usuario['password'])) {
+        throw new Exception("E-mail ou senha incorretos");
+    }
+    
+    session_start();
+    $_SESSION['user_id'] = $usuario['id'];
+    Response::redirect('/dashboard');
+}, false); // Mostra erro na tela se houver
+```
+
+### Informações Exibidas
+
+Ao usar `dd()`, `dump()` ou `cutErr()`, as seguintes informações aparecem:
+
+- 📁 **Arquivo**: Nome do arquivo onde o debug foi chamado
+- 📍 **Linha**: Número da linha
+- 🌐 **Rota**: URL da requisição atual
+- 📊 **Tipo de dado**: STRING, ARRAY, OBJECT, INT, BOOL, NULL
+- 🔍 **Conteúdo**: Visualização completa do dado (com expandir para arrays/objetos)
+
+### Exemplo Completo
+
+```php
+// No seu controlador
+public function registrar() {
+    $dados = $_POST;
+    
+    // Debug para verificar os dados
+    dump($dados); // Exibe os dados recebidos
+    
+    // Capturar erro ao inserir
+    cutErr(function() {
+        sql::INSERT("usuarios", $dados)->execute();
+        Response::message('success', 'Usuário registrado!')->redirect('/login');
+    });
+}
+```
+
+---
+
+## Sistema de Cache (CacheerPHP)
+
+Este projeto utiliza o **CacheerPHP**, um sistema de cache minimalista e poderoso com suporte a múltiplos drivers.
+
+### Configuração do Cache
+
+As configurações de cache são definidas no arquivo `.env`:
+
+```ini
+# Driver: file (padrão), redis, database, array
+CACHE_DRIVER=file
+
+# Redis Configuration (if using redis driver)
+REDIS_HOST=localhost
+REDIS_PORT=6379
+REDIS_DB=0
+```
+
+### Drivers Disponíveis
+
+- **`file`** (padrão): Armazena cache em arquivos no diretório `storage/cache`
+- **`redis`**: Utiliza Redis para cache rápido em memória
+- **`database`**: Armazena cache em uma tabela do banco de dados
+- **`array`**: Cache em memória durante a requisição (sem persistência)
+
+### Helpers de Cache
+
+O projeto oferece funções auxiliares para facilitar o uso do cache:
+
+#### `cache_put($key, $value, $ttl = null, $namespace = null)`
+Armazena um valor no cache.
+
+```php
+cache_put('user_profile_1', ['name' => 'John Doe'], 3600); // TTL de 1 hora
+cache_put('config_key', $value, null, 'settings'); // Com namespace
+```
+
+#### `cache_get($key, $default = null, $namespace = null)`
+Recupera um valor do cache.
+
+```php
+$user = cache_get('user_profile_1');
+$user = cache_get('user_profile_1', ['name' => 'Guest']); // Com valor padrão
+```
+
+#### `cache_has($key, $namespace = null)`
+Verifica se uma chave existe no cache.
+
+```php
+if (cache_has('user_profile_1')) {
+    $user = cache_get('user_profile_1');
+}
+```
+
+#### `cache_forget($key, $namespace = null)`
+Remove um valor do cache.
+
+```php
+cache_forget('user_profile_1');
+```
+
+#### `cache_flush($namespace = null)`
+Limpa todo o cache (ou um namespace específico).
+
+```php
+cache_flush(); // Limpa tudo
+cache_flush('settings'); // Limpa apenas o namespace 'settings'
+```
+
+#### `cache_remember($key, $ttl, $callback, $namespace = null)`
+Recupera do cache ou executa um callback e armazena o resultado.
+
+```php
+$user = cache_remember('user_profile_1', 3600, function() {
+    return sql::SELECT("users")->where("id", 1)->get();
+});
+```
+
+#### `cache_pull($key, $default = null, $namespace = null)`
+Recupera e remove uma chave do cache.
+
+```php
+$user = cache_pull('user_profile_1'); // Remove após obter
+```
+
+### Exemplo Prático
+
+```php
+public function getUserProfile($userId) {
+    // Tenta obter do cache
+    $user = cache_remember("user_profile_{$userId}", 3600, function() use ($userId) {
+        // Se não estiver em cache, busca no banco
+        return sql::SELECT("users")->where("id", $userId)->get();
+    });
+    
+    return Response::view("user-profile", ['user' => $user]);
+}
+```
+
+## Sistema de Cron Jobs
+
+O projeto inclui um sistema completo para agendamento e execução de tarefas periódicas.
+
+### Configuração Básica
+
+```php
+// Registrar uma tarefa que executa diariamente
+Cron::register('my_task', function() {
+    echo "Executando tarefa diária!";
+})->daily('my_task');
+
+// Executar crons
+$result = Cron::run();
+```
+
+### Agendamentos Disponíveis
+
+```php
+// Simples
+Cron::register('task', $callback)->everyMinute('task');
+Cron::register('task', $callback)->everyFiveMinutes('task');
+Cron::register('task', $callback)->hourly('task');
+Cron::register('task', $callback)->daily('task');
+
+// Com horário específico
+Cron::register('task', $callback)->dailyAt('14:30', 'task');
+Cron::register('task', $callback)->weeklyOn(1, '09:00', 'task'); // Toda segunda às 9h
+Cron::register('task', $callback)->monthlyOn(15, '10:00', 'task'); // Dia 15 às 10h
+
+// Customizado com cron expression
+Cron::register('task', $callback, '*/5 * * * *'); // A cada 5 minutos
+```
+
+### Exemplos Práticos
+
+#### Limpeza de Cache Expirado
+```php
+Cron::register('clear_cache', function() {
+    try {
+        sql::DELETE("cache")
+            ->where("expires_at", "<", date("Y-m-d H:i:s"))
+            ->execute();
+        echo "Cache limpo com sucesso";
+    } catch (Exception $e) {
+        echo "Erro: " . $e->getMessage();
+    }
+})->daily('clear_cache');
+```
+
+#### Envio de E-mails
+```php
+Cron::register('send_emails', function() {
+    $emails = sql::SELECT("email_queue")
+        ->where("status", "pending")
+        ->get();
+    
+    foreach ($emails as $email) {
+        // Mail::send($email['to'], $email['subject'], $email['body']);
+        sql::UPDATE("email_queue")
+            ->set(['status' => 'sent'])
+            ->where("id", $email['id'])
+            ->execute();
+    }
+})->everyFiveMinutes('send_emails');
+```
+
+### Monitoramento
+
+```php
+// Listar todas as tarefas
+$tasks = Cron::list();
+
+// Status de todas as tarefas
+$status = Cron::status();
+
+// Histórico de execução
+$logs = Cron::getLog('my_task', 10); // Últimas 10 execuções
+
+// Próxima execução
+$nextRun = Cron::nextRun('0 0 * * *'); // Próxima execução diária
+```
+
+### Integração do Sistema
+
+#### Opção 1: Rota HTTP (Recomendado)
+
+Crie uma rota protegida que executa os crons:
+
+```php
+// routes/web.php
+$route->get("admin/cron-run", [AdminController::class, "runCron"], true);
+
+// Controllers/AdminController.php
+public function runCron() {
+    if (request()->query('token') !== env('CRON_TOKEN')) {
+        return Response::abort(403, 'Forbidden');
+    }
+    return Response::json(Cron::run());
+}
+```
+
+Configure no cron do sistema para chamar a cada minuto:
+```bash
+* * * * * curl http://seu-site.com/admin/cron-run?token=seu_token
+```
+
+#### Opção 2: Arquivo PHP Independente
+
+Use o arquivo `cron-runner.php` na raiz do projeto:
+
+```bash
+* * * * * /usr/bin/php /caminho/para/seu/projeto/cron-runner.php
+```
+
+#### Opção 3: Windows Task Scheduler
+
+```
+schtasks /create /tn "MVC Model Cron" /tr "php C:\caminho\cron-runner.php" /sc minute
+```
+
+### Documentação Completa
+
+Para mais informações, veja:
+- [CRON.md](lib/CRON.md) - Documentação completa
+- [cron_examples.php](lib/cron_examples.php) - Exemplos práticos
+- [cron-runner.php](cron-runner.php) - Arquivo para execução
+
+---
+
+## E-mail e Autenticação com Tokens JWT
+
+### E-mail com PHPMailer
+
+O sistema integra a biblioteca **PHPMailer** para envio seguro de e-mails via SMTP. Suporta Gmail, Outlook, AWS SES e qualquer servidor SMTP.
+
+#### Configuração
+
+```env
+# .env
+MAIL_HOST=smtp.gmail.com
+MAIL_PORT=587
+MAIL_USERNAME=seu_email@gmail.com
+MAIL_PASSWORD=sua_senha_app
+MAIL_FROM_NAME=Seu Site
+```
+
+#### Uso Básico
+
+```php
+use lib\Mail;
+
+// Envio simples
+$mail = new Mail();
+$resultado = $mail->send('Subject', '<h1>Olá!</h1>', ['recipient@example.com']);
+
+if ($resultado['success']) {
+    echo "E-mail enviado com sucesso!";
+} else {
+    echo "Erro: " . $resultado['error'];
+}
+```
+
+#### Em Controllers
+
+```php
+public function enviarBemVindo($email) {
+    $mail = new Mail();
+    $html = "<h1>Bem-vindo!</h1><p>Sua conta foi criada com sucesso.</p>";
+    
+    return $mail->send('Bem-vindo ao site', $html, [$email]);
+}
+```
+
+#### Com Cron Jobs
+
+```php
+Cron::register('send_pending_emails', function() {
+    $mail = new Mail();
+    $emails = sql::SELECT("email_queue")->where("status", "pending")->get();
+    
+    foreach ($emails as $email) {
+        $mail->send($email['subject'], $email['body'], [$email['recipient']]);
+        sql::UPDATE("email_queue")->set(['status' => 'sent'])->where("id", $email['id'])->execute();
+    }
+})->everyFiveMinutes('send_pending_emails');
+```
+
+### Autenticação com JWT
+
+O sistema usa **Firebase/php-jwt** para criar e validar tokens seguros. Ideal para APIs e autenticação stateless.
+
+#### Uso Básico
+
+```php
+use lib\Token;
+
+// Criar token
+$token = Token::create($user_id);
+// Retorna: eyJ0eXAiOiJKV1QiLCJhbGc...
+
+// Validar token
+if (Token::isValid($token)) {
+    echo "Token válido!";
+    $payload = Token::decode($token);
+    $user_id = $payload->user_id;
+} else {
+    echo "Token inválido ou expirado";
+}
+```
+
+#### Autenticação em Middlewares
+
+```php
+// Middlewares/AuthTokenMiddleware.php
+class AuthTokenMiddleware extends Middleware {
+    public function handle() {
+        $token = request()->bearerToken();
+        
+        if (!$token || !Token::isValid($token)) {
+            return Response::abort(401, 'Unauthorized');
+        }
+        
+        $payload = Token::decode($token);
+        request()->setUser($payload);
+    }
+}
+```
+
+#### Login com Geração de Token
+
+```php
+public function login($email, $password) {
+    $user = sql::SELECT("users")->where("email", $email)->first();
+    
+    if ($user && password_verify($password, $user['password'])) {
+        $token = Token::create($user['id']);
+        return Response::json(['token' => $token, 'user' => $user]);
+    }
+    
+    return Response::json(['error' => 'Invalid credentials'], 401);
+}
+```
+
+#### Validação de Token no Frontend
+
+```javascript
+// JavaScript - Fetch API
+const token = localStorage.getItem('authToken');
+
+fetch('/api/perfil', {
+    headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+    }
+})
+.then(r => r.json())
+.then(data => console.log(data));
+```
+
+### Documentação Detalhada
+
+Para mais informações e exemplos avançados, veja:
+- [EMAIL_TOKEN.md](lib/EMAIL_TOKEN.md) - Guia completo de e-mail e tokens
+- Configuração de Gmail, Outlook e AWS SES
+- Fluxos de autenticação avançados
+- Segurança e best practices
+
+---
+
+### Agradecimentos especiais
+
+Este projeto integra o **[CacheerPHP](https://github.com/CacheerPHP/CacheerPHP)**, um sistema de cache excelente desenvolvido por **[Silvio Silva](https://github.com/silviooosilva)**. 
+
+Agradecemos sinceramente ao criador pela criação de uma solução de cache tão bem estruturada, minimalista e fácil de usar. A implementação do CacheerPHP neste projeto contribui significativamente para melhorar a performance e a eficiência da aplicação, oferecendo suporte a múltiplos drivers de cache e uma API intuitiva.
+
+Se você encontrar valor no CacheerPHP, considere apoiar o desenvolvedor através do [Buy Me a Coffee](https://buymeacoffee.com/silviooosilva) ou contribuindo no repositório.
 
 ###
 ###

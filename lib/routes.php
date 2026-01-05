@@ -13,6 +13,7 @@ class Routes
     protected $check = [];
     protected $segments = [];
     protected $found = false;
+    protected $controller;
     protected $parament;
     protected $routes = [];
 
@@ -25,7 +26,7 @@ class Routes
      */
     public function __construct()
     {
-        session_start();
+        $this->routes = [];
 
         $mountURL = $_SERVER["REQUEST_SCHEME"] . "://" . $_SERVER['HTTP_HOST'] . $_SERVER["REQUEST_URI"];
         $urlSTR = str_replace(["/", "."], "-", $mountURL);
@@ -88,17 +89,8 @@ class Routes
     {
         $header = $this->header($parament, $no_group, "GET");
         if (!$this->found && $header[0]) {
-            // Obter classe e o metodo
-            $class = $array[0];
-            $method = $array[1];
-
-            // check ID
-            $param = !empty($header[1]) ? $header[1] : false;
-
-            // Instanciar classe e chamar metodo
-            $controller = new $class();
-            $controller->$method($param);
-
+            // Envia controller encontrado
+            $this->controller = [$array, $header, "GET"];
             $this->found = true;
         }
         $this->parament = $parament;
@@ -115,20 +107,11 @@ class Routes
      * @return $this
      */
     public function post($parament, $array, $no_group = false)
-    {
+    {   
         $header = $this->header($parament, $no_group, "POST");
         if (!$this->found && $header[0]) {
-            // Obter classe e o metodo
-            $class = $array[0];
-            $method = $array[1];
-
-            // check ID
-            $param = !empty($header[1]) ? $header[1] : false;
-
-            // Instanciar classe e chamar metodo
-            $controller = new $class();
-            $controller->$method(new Request, $param);
-
+            // Envia controller encontrado
+            $this->controller = [$array, $header, "POST"];
             $this->found = true;
         }
         $this->parament = $parament;
@@ -145,7 +128,6 @@ class Routes
     public function name($value)
     {
         $parament = reset($this->segments) . '/' . $this->parament;
-        $this->segments = []; // Reinicia array
 
         $this->routes[$value] = $parament;
         return $this;
@@ -165,9 +147,15 @@ class Routes
     {
         // Cria a rota
         $this->check[] = trim($parament, '/');
+
         if (!$no_group) {
-            $this->segments[] = $parament;
+            $this->segments[] = $parament ?: ""; // Caso seja vazio
             $parament = reset($this->segments) . '/' . end($this->segments);
+        }
+
+        // Verifica se o parâmetro é vazio, tratando a rota base
+        if (trim($parament, '/') == "") {
+            $parament = "/";
         }
 
         $regex = "/{[\w]+}/";
@@ -187,7 +175,8 @@ class Routes
                 $this->err++;
                 return [false];
             }
-        } elseif ('/' . $parament == $this->uri) {
+        } elseif ('/' . trim($parament, '/') == $this->uri) {
+            // Aqui permite que a rota "/" funcione
             if ($_SERVER['REQUEST_METHOD'] == $method) return [true];
             else Response::abort(405);
         } else {
@@ -232,7 +221,25 @@ class Routes
      */
     public function exit()
     {
-        $_SESSION['routes'] = $this->routes;
-        if (!$this->found && count($this->check)) Response::abort(404);
+        if ($this->found) {
+            $_SESSION['routes'] = $this->routes; // Define todos os nomes de rotas
+
+            // Chama controller encontrado
+            // Obter classe e o metodo
+            $array = $this->controller[0];
+            $header = $this->controller[1];
+            $class = $array[0];
+            $method = $array[1];
+
+            // check ID
+            $param = !empty($header[1]) ? $header[1] : false;
+
+            // Instanciar classe e chamar metodo
+            $controller = new $class();
+
+            // Verifica se é um POST ou GET
+            if ($this->controller[2] == "POST") $controller->$method(new Request, $param);
+            else $controller->$method($param);
+        } else Response::abort(404);
     }
 }

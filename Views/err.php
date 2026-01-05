@@ -7,9 +7,9 @@
     <title><?= $message ?> - <?= $code ?></title>
     <style>
         :root {
-            --primaria: #0366d6;
-            --background: #0f1114;
-            --backgroundCL: #161b22;
+            --primaria: #1f6feb;
+            --background: #0d1117;
+            --backgroundCL: #0f141b;
             --cinzaFFF: #cfcfcf;
             --other: #2f363d;
         }

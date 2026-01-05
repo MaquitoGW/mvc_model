@@ -2,10 +2,14 @@
     "autoload": {
         "psr-4": {
             "lib\\": "lib/",
-            "Controllers\\": "Controllers/"
+            "Controllers\\": "Controllers/",
+            "Middlewares\\": "Middlewares/"
         }
     },
     "require": {
-        "vlucas/phpdotenv": "^5.6"
+        "vlucas/phpdotenv": "^5.6",
+        "firebase/php-jwt": "^6.11",
+        "guzzlehttp/guzzle": "^7.9",
+        "silviooosilva/cacheer-php": "^4.7"
     }
 }

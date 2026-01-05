@@ -16,6 +16,7 @@ class sql
     protected $password;
     protected $PDO;
     protected $query;
+    protected $wheresSize;
 
     /**
      * Construtor
@@ -74,6 +75,12 @@ class sql
         return $i;
     }
 
+    public static function query($sql) {
+        $i = new self();
+        $i->query = $sql;
+        return $i;
+    }
+
     /**
      * Adiciona os valores para o INSERT.
      *
@@ -101,10 +108,9 @@ class sql
      */
     public function where($registro, $value = null)
     {
-        if (empty($value)) $a = "";
-        else $a = "= $value";
+        $a = !is_null($value) ? "= $value" : "";
 
-        $this->query .= "WHERE $registro $a";
+        $this->query .= "WHERE $registro " . $a;
         return $this;
     }
 
@@ -120,7 +126,9 @@ class sql
         if (empty($value)) $a = "";
         else $a = "LIKE '%$value%'";
 
-        $this->query .= "WHERE $registro $a";
+        $this->wheresSize++;
+        $this->query .= $this->wheresSize == 1 ? "WHERE $registro " . $a : "AND $registro " . $a;
+
         return $this;
     }
 

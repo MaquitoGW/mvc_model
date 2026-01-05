@@ -4,33 +4,6 @@ namespace lib;
 
 class Response
 {
-    private static $session = false;
-
-    /**
-     * Construtor da classe Response
-     * 
-     * O construtor chama o método startSession para garantir que a sessão seja iniciada.
-     */
-    public function __construct()
-    {
-        $this->startSession();
-    }
-
-    /**
-     * Iniciar Sessão
-     * 
-     * Verifica se a sessão já foi iniciada e a inicia caso ainda não tenha sido.
-     * 
-     * @return void
-     */
-    protected static function startSession()
-    {
-        if (self::$session === false) {
-            session_start();
-            self::$session = true;
-        }
-    }
-
     /**
      * Exibir View
      * 
@@ -66,7 +39,8 @@ class Response
      */
     public static function route($name)
     {
-        return $_SESSION['routes'][$name];
+        if (isset($_SESSION['routes'][$name])) return IsConfig::env("URL") . $_SESSION['routes'][$name];
+        return false;
     }
 
     /**
@@ -124,7 +98,6 @@ class Response
      */
     public static function message($name, $value)
     {
-        self::startSession();
         $_SESSION[$name] = $value;
         return new Self();
     }
@@ -140,13 +113,28 @@ class Response
      */
     public static function getMessage($name)
     {
-        self::startSession();
         if (isset($_SESSION[$name])) {
             $message = $_SESSION[$name];
             unset($_SESSION[$name]);
             return $message;
         }
         return null;
+    }
+
+    /**
+     * Retornar Dados em Formato JSON
+     * 
+     * Define o cabeçalho para JSON e exibe os dados codificados em JSON.
+     * 
+     * @param mixed $data Dados a serem retornados em formato JSON
+     * 
+     * @return void
+     */
+    public static function json($data)
+    {
+        header("Content-Type: application/json");
+        echo json_encode($data);
+        exit;
     }
 
 
