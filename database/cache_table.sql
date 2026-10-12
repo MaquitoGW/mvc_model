@@ -1,15 +1,27 @@
--- Tabela para armazenar cache usando o database driver do CacheerPHP
--- Execute este SQL se estiver usando CACHE_DRIVER=database
+-- CacheerPHP 6.x: schema para MySQL/MariaDB com CACHE_DRIVER=database.
+-- Execute este SQL uma vez antes de usar o driver.
+-- A antiga tabela `cache` não é alterada; os dados 6.x começam vazios.
+-- Para SQLite/PostgreSQL, use DatabaseStoreSchema::migrate($pdo, 'cacheer_store').
 
-CREATE TABLE IF NOT EXISTS `cache` (
-    `id` INT AUTO_INCREMENT PRIMARY KEY,
-    `key` VARCHAR(255) UNIQUE NOT NULL COMMENT 'Chave do cache',
-    `value` LONGTEXT NOT NULL COMMENT 'Valor armazenado em serialização',
-    `namespace` VARCHAR(100) COMMENT 'Namespace opcional para organizar caches',
-    `expires_at` TIMESTAMP NULL DEFAULT NULL COMMENT 'Data/hora de expiração',
-    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT 'Data de criação',
-    `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Data de última atualização',
-    INDEX `idx_key` (`key`),
-    INDEX `idx_namespace` (`namespace`),
-    INDEX `idx_expires_at` (`expires_at`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Tabela de cache para CacheerPHP';
+CREATE TABLE IF NOT EXISTS cacheer_store (
+    cache_key VARCHAR(255) NOT NULL PRIMARY KEY,
+    scope VARCHAR(255) NOT NULL,
+    key_value TEXT NOT NULL,
+    value LONGTEXT NOT NULL,
+    created_at BIGINT NOT NULL,
+    expires_at BIGINT NULL,
+    INDEX idx_cacheer_store_expires (expires_at),
+    INDEX idx_cacheer_store_scope (scope)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS cacheer_store_tags (
+    tag VARCHAR(255) NOT NULL,
+    cache_key VARCHAR(255) NOT NULL,
+    INDEX idx_cacheer_store_tags_tag (tag)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS cacheer_store_locks (
+    lock_name VARCHAR(255) NOT NULL PRIMARY KEY,
+    owner VARCHAR(255) NOT NULL,
+    expires_at BIGINT NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

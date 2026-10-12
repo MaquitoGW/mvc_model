@@ -458,7 +458,7 @@ public function registrar() {
 
 ## Sistema de Cache (CacheerPHP)
 
-Este projeto utiliza o **CacheerPHP**, um sistema de cache minimalista e poderoso com suporte a múltiplos drivers.
+Este projeto utiliza o **CacheerPHP 6.x** e requer **PHP 8.3 ou superior**. Os helpers existentes utilizam uma instância compartilhada, configurada no primeiro uso, com namespaces isolados via `scope()`.
 
 ### Configuração do Cache
 
@@ -476,10 +476,23 @@ REDIS_DB=0
 
 ### Drivers Disponíveis
 
-- **`file`** (padrão): Armazena cache em arquivos no diretório `storage/cache`
-- **`redis`**: Utiliza Redis para cache rápido em memória
-- **`database`**: Armazena cache em uma tabela do banco de dados
+- **`file`** (padrão): Armazena cache em arquivos no diretório `storage/cache/v6`
+- **`redis`**: Utiliza o cliente Predis com o prefixo `mvc_model:cache:v6`; `REDIS_PASSWORD` é opcional
+- **`database`**: Utiliza PDO com as configurações `DB`, `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER` e `DB_PASS`. Aceita `mysql`, `pgsql` e `sqlite`; para SQLite, `DB_NAME` é o caminho do arquivo
 - **`array`**: Cache em memória durante a requisição (sem persistência)
+
+O cache antigo não é reaproveitado; os valores serão recalculados no primeiro acesso. Para `database`, execute `database/cache_table.sql` uma vez no MySQL/MariaDB. No SQLite/PostgreSQL, crie o schema com `Silviooosilva\CacheerPhp\Stores\Support\DatabaseStoreSchema::migrate($pdo, 'cacheer_store')`, usando a conexão PDO da aplicação. O helper não cria tabelas durante uma requisição.
+
+Os métodos atuais também estão disponíveis pela instância:
+
+```php
+$cache = initializeCache('users');
+$cache->set('profile_1', ['name' => 'John Doe'], '1 hour');
+$profile = $cache->get('profile_1');
+$json = $cache->formatted()->get('profile_1')->toJson();
+```
+
+TTL aceita segundos positivos, texto (como `'1 hour'`), `DateInterval` ou `Ttl`; `null` não expira. `cache_put()` e `cache_flush()` retornam `true` após sucesso. Falhas de armazenamento geram exceções, conforme a API 6.x.
 
 ### Helpers de Cache
 
